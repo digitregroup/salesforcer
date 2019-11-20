@@ -78,7 +78,9 @@ class Executor {
         }
     }
 
-    async execute(request: Executable): Promise<object> {
+    // Data from external APIs could be anything and could also change
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async execute(request: Executable): Promise<any> {
         if (this.axios) {
             return await request.execute(this.apiVersion, this.axios);
         }

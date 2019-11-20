@@ -27,7 +27,9 @@ class Request implements Executable {
         ].join('');
     }
 
-    async execute(apiVersion: string, axios: AxiosInstance): Promise<object> {
+    // Data from external APIs could be anything and could also change
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async execute(apiVersion: string, axios: AxiosInstance): Promise<any> {
         const res = await axios.request({
             url: this.buildUrl(apiVersion),
             method: this.method,
