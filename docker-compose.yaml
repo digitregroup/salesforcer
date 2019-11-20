@@ -1,0 +1,11 @@
+version: '2.2'
+
+services:
+
+  yarn:
+    image: node:10-alpine
+    init: true
+    volumes:
+      - ./:/scripts:rw
+    working_dir: /scripts
+    entrypoint: ["yarn"]
