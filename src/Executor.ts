@@ -2,7 +2,7 @@ import axios, {AxiosInstance, AxiosResponse} from 'axios';
 import Executable from "./Executable";
 
 interface ExecutorConfig {
-    authUrl: string
+    authUrl: string;
     grantType: string;
     clientId: string;
     clientSecret: string;
@@ -59,13 +59,13 @@ class Executor {
                 null,
                 {
                     params: {
-                        grant_type: this.grantType,
-                        client_id: this.clientId,
-                        client_secret: this.clientSecret,
+                        'grant_type': this.grantType,
+                        'client_id': this.clientId,
+                        'client_secret': this.clientSecret,
                         username: this.username,
                         password: this.password,
                     },
-                }
+                },
             );
 
             this.token = response.data.access_token;
@@ -78,7 +78,7 @@ class Executor {
         }
     }
 
-    async execute(request: Executable): Promise<any> {
+    async execute(request: Executable): Promise<object> {
         if (this.axios) {
             return await request.execute(this.apiVersion, this.axios);
         }

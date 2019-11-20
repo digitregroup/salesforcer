@@ -66,7 +66,7 @@ class Composite implements Executable {
         ].join('');
     }
 
-    async execute(apiVersion: string, axios: AxiosInstance): Promise<any> {
+    async execute(apiVersion: string, axios: AxiosInstance): Promise<object> {
         const res = await axios.request({
             url: this.buildUrl(apiVersion),
             method: 'POST',

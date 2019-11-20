@@ -92,6 +92,13 @@ jobs:
           name: Unit tests
           command: yarn test
 
+  lint:
+    <<: *node_config
+    steps:
+      - *restore_workspace
+      - run:
+          name: Linting using EsLint
+          command: yarn lint
 
 workflows:
   version: 2
@@ -103,3 +110,8 @@ workflows:
           requires:
             - install_dependencies
           <<: *filter_all
+      - lint:
+          requires:
+            - install_dependencies
+          <<: *filter_all
+

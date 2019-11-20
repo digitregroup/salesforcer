@@ -23,11 +23,11 @@ class Request implements Executable {
             Request.urlPrefix,
             this.apiVersion || apiVersion,
             Request.urlSuffix,
-            this.sobject
+            this.sobject,
         ].join('');
     }
 
-    async execute(apiVersion: string, axios: AxiosInstance): Promise<any> {
+    async execute(apiVersion: string, axios: AxiosInstance): Promise<object> {
         const res = await axios.request({
             url: this.buildUrl(apiVersion),
             method: this.method,

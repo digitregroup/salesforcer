@@ -24,7 +24,7 @@ describe('Request.execute', () => {
             'POST',
             'Task',
             { foo: 'bar' },
-            'v46.0'
+            'v46.0',
         );
 
         const fakeAxios = mockedAxios.create({
@@ -36,7 +36,7 @@ describe('Request.execute', () => {
 
         expect(data.id).toHaveLength(18);
         expect(data.success).toBeTruthy();
-        expect(data.errors.length).toBe(0);
+        expect(data.errors).toHaveLength(0);
     });
 
     it('throws on error', async() => {
@@ -44,7 +44,7 @@ describe('Request.execute', () => {
             'POST',
             'Task',
             { totally: 'wrong' },
-            'v46.0'
+            'v46.0',
         );
 
         const fakeAxios = mockedAxios.create({

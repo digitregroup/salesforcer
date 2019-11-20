@@ -102,39 +102,6 @@ axios.create = ({baseUrl, headers}) => {
                     return responseData;
                 }
             }
-            //
-            // } else {
-            //     if (url.includes('composite')) {
-            //         responseData.data.compositeResponse = [];
-            //
-            //         for (const r of data.compositeRequest) {
-            //             responseData.data.compositeResponse.push({
-            //                 body: {
-            //                     id: '001R00000033I6AIAU',
-            //                     success: true,
-            //                     errors: []
-            //                 },
-            //                 httpHeaders: {
-            //                     Location: r.url + '/001R00000033I6AIAU',
-            //                 },
-            //                 httpStatusCode: 201,
-            //                 referenceId: r.referenceId,
-            //             });
-            //         }
-            //     } else {
-            //         responseData.data = {
-            //             id: '00Q1w0000029yNwEAI',
-            //             success: true,
-            //             errors: [],
-            //         };
-            //     }
-            // }
-            //
-            // return responseData;
-
-
-
-
 
             if (data.totally && data.totally === 'wrong') {
                 responseData.status = 400;

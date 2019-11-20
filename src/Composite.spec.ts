@@ -7,11 +7,11 @@ describe('Composite.add', () => {
         const c: Composite = new Composite(true);
         const testRequest: Request = new Request('POST', 'Lead', {heck: 'yeah'});
 
-        expect(c.requests.length).toBe(0);
+        expect(c.requests).toHaveLength(0);
 
         c.add({ referenceId: "NewLead", request: testRequest });
 
-        expect(c.requests.length).toBe(1);
+        expect(c.requests).toHaveLength(1);
         expect(c.requests[0].request).toEqual(testRequest);
         expect(c.requests[0].referenceId).toEqual('NewLead');
     });
@@ -20,13 +20,13 @@ describe('Composite.add', () => {
         const c: Composite = new Composite(true);
         const testRequest: Request = new Request('POST', 'Lead', {heck: 'yeah'});
 
-        expect(c.requests.length).toBe(0);
+        expect(c.requests).toHaveLength(0);
 
         c
             .add({ referenceId: "first", request: testRequest })
             .add({ referenceId: "second", request: testRequest });
 
-        expect(c.requests.length).toBe(2);
+        expect(c.requests).toHaveLength(2);
         expect(c.requests[0].referenceId).toEqual('first');
         expect(c.requests[1].referenceId).toEqual('second');
     });
@@ -61,7 +61,7 @@ describe('Composite.buildPayload', () => {
         const payload = c.buildPayload('v50.0');
 
         expect(payload.allOrNone).toBeTruthy();
-        expect(payload.compositeRequest.length).toBe(2);
+        expect(payload.compositeRequest).toHaveLength(2);
         expect(payload.compositeRequest[0].referenceId).toBe('NewLead');
         expect(payload.compositeRequest[1].referenceId).toBe('AddTask');
     });
@@ -84,7 +84,7 @@ describe('Composite.execute', () => {
 
         const data = await c.execute('v50.0', fakeAxios);
 
-        expect(data.compositeResponse.length).toBe(2);
+        expect(data.compositeResponse).toHaveLength(2);
         expect(data.compositeResponse[0].referenceId).toBe('NewLead');
         expect(data.compositeResponse[1].referenceId).toBe('AddTask');
     });
@@ -111,7 +111,7 @@ describe('Composite.execute', () => {
         }
 
         expect(error.isAxiosError).toBeTruthy();
-        expect(error.response.data.compositeResponse.length).toBe(2);
+        expect(error.response.data.compositeResponse).toHaveLength(2);
         expect(error.response.status).toBe(400);
         expect(error.response.statusText).toBe('Bad Request');
     });
