@@ -3,7 +3,7 @@ version: '2.2'
 services:
 
   yarn:
-    image: node:10-alpine
+    image: node:12-alpine
     init: true
     volumes:
       - ./:/scripts:rw

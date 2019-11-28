@@ -1,6 +1,13 @@
 # SalesForcer
 
-![](https://github.com/digitregroup/salesforcer/workflows/CI/badge.svg)
+<p>
+  <a href="https://github.com/digitregroup/salesforcer/actions?query=workflow%3ACI+event%3Apush+branch%3Amaster">
+    <img src="https://github.com/digitregroup/salesforcer/workflows/CI/badge.svg">
+  </a>
+  <a href="https://www.npmjs.com/package/@digitregroup/salesforcer">
+    <img src="https://img.shields.io/npm/v/@digitregroup/salesforcer">
+  </a>
+</p>
 
 
 SalesForcer is a wrapper around SalesForce API allowing to simply build single and composite requests.    
