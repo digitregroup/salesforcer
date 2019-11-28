@@ -4,7 +4,7 @@ import {AxiosInstance, Method} from 'axios';
 class Request implements Executable {
 
     static readonly urlPrefix = '/services/data/';
-    static readonly urlSuffix = '/sobject/';
+    static readonly urlSuffix = '/sobjects/';
 
     method: Method;
     sobject: string;

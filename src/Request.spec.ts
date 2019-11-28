@@ -6,14 +6,14 @@ describe('Request.buildUrl', () => {
         const r: Request = new Request('POST', 'Task', {}, 'v46.0');
         const url: string = r.buildUrl('v50.5');
 
-        expect(url).toEqual('/services/data/v46.0/sobject/Task');
+        expect(url).toEqual('/services/data/v46.0/sobjects/Task');
     });
 
     it('returns url with Executor API version', () => {
         const r: Request = new Request('POST', 'Task', {});
         const url: string = r.buildUrl('v50.5');
 
-        expect(url).toEqual('/services/data/v50.5/sobject/Task');
+        expect(url).toEqual('/services/data/v50.5/sobjects/Task');
     });
 });
 
