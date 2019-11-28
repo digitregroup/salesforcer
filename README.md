@@ -41,7 +41,10 @@ const executor = new Exectutor({
    password: 'fakeValidPassword',
    username: 'fakeUsername',
 });
+
 const request = new Request('POST', 'Task', {foo: 'bar'});
+
+await executor.auth();
 const response = await executor.execute(request);
 ```
 
@@ -70,6 +73,7 @@ composite
         request: new Request('POST', 'Task', {bar: 'baz', WhoId: '@{NewLead.id}'}),
     });
 
+await executor.auth();
 const response = await executor.execute(composite);
 ```
 
