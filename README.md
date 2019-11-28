@@ -153,7 +153,7 @@ npm version <version>
 This will:
 - update the `version` field in package.json
 - commit the package.json
-- tag with `<version>`
+- tag with `v<version>`
 
 
 
