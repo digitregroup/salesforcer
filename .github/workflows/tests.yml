@@ -34,7 +34,7 @@ jobs:
         run: yarn lint
 
   test:
-    name: Run tests on ${{ matrix.os }} and node ${{ matrix.node_version }}
+    name: Run tests with node ${{ matrix.node_version }} on ${{ matrix.os }}
     runs-on: [ubuntu-latest]
     needs: lint
     strategy:
