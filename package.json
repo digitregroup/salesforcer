@@ -1,9 +1,12 @@
 {
-  "name": "salesforcer",
+  "name": "@digitregroup/salesforcer",
   "version": "0.1.0",
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "files": [
+    "lib/*"
+  ],
   "scripts": {
     "lint": "eslint src/*.ts",
     "test": "jest",
@@ -14,13 +17,13 @@
     "@typescript-eslint/eslint-plugin": "^2.8.0",
     "@typescript-eslint/parser": "^2.8.0",
     "eslint": "^6.6.0",
+    "eslint-plugin-jest": "^23.0.4",
     "jest": "^24.9.0",
     "ts-jest": "^24.1.0",
     "typescript": "^3.7.2"
   },
   "dependencies": {
-    "axios": "^0.19.0",
-    "eslint-plugin-jest": "^23.0.4"
+    "axios": "^0.19.0"
   },
   "jest": {
     "moduleFileExtensions": [
