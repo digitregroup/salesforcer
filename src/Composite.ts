@@ -6,7 +6,7 @@ interface CompositeRequestPayload {
     method: Method;
     referenceId: string;
     url: string;
-    body: object;
+    body?: object;
 }
 
 interface CompositePayload {
@@ -26,12 +26,15 @@ class Composite implements Executable {
 
     allOrNone: boolean;
     requests: Array<CompositeRequest>;
-    apiVersion: string | null;
+    apiVersion?: string;
 
-    constructor(allOrNone: boolean, apiVersion: string | null = null) {
+    constructor(allOrNone: boolean, apiVersion?: string) {
         this.allOrNone = allOrNone;
         this.requests = [];
-        this.apiVersion = apiVersion;
+
+        if (apiVersion) {
+            this.apiVersion = apiVersion;
+        }
     }
 
     add(compositeRequest: CompositeRequest): Composite {
@@ -47,12 +50,18 @@ class Composite implements Executable {
         };
 
         for (const cRequest of this.requests) {
-            payload.compositeRequest.push({
+            cRequest.request.validate();
+
+            const p: CompositeRequestPayload = {
                 method: cRequest.request.method,
                 referenceId: cRequest.referenceId,
                 url: cRequest.request.buildUrl(apiVersion),
-                body: cRequest.request.body,
-            })
+            };
+            if (cRequest.request.body) {
+                p.body = cRequest.request.body;
+            }
+
+            payload.compositeRequest.push(p);
         }
 
         return payload;

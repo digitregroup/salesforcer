@@ -2,30 +2,77 @@ import Request from './Request';
 import mockedAxios from 'axios';
 
 describe('Request.buildUrl', () => {
-    it('returns url with Request API version', () => {
-        const r: Request = new Request('POST', 'Task', {}, 'v46.0');
+    it('returns simplest url with Request API version', () => {
+        const r: Request = new Request({ method: 'POST', sobject: 'Task', body: {}, apiVersion: 'v46.0' });
         const url: string = r.buildUrl('v50.5');
 
         expect(url).toEqual('/services/data/v46.0/sobjects/Task');
     });
 
-    it('returns url with Executor API version', () => {
-        const r: Request = new Request('POST', 'Task', {});
+    it('returns simplest url with Executor API version', () => {
+        const r: Request = new Request({ method: 'POST', sobject: 'Task', body: {} });
         const url: string = r.buildUrl('v50.5');
 
         expect(url).toEqual('/services/data/v50.5/sobjects/Task');
     });
+
+    it('returns url with params', () => {
+        const r: Request = new Request({ method: 'POST', sobject: 'Task', params: ['@{NewAccount.id}']});
+        const url: string = r.buildUrl('v50.5');
+
+        expect(url).toEqual('/services/data/v50.5/sobjects/Task/@{NewAccount.id}');
+    });
+
+    it('returns url with params and query string', () => {
+        const r: Request = new Request({
+            method: 'POST',
+            sobject: 'Task',
+            params: ['@{NewAccount.id}'],
+            qs: { fields: 'companyName' },
+        });
+        const url: string = r.buildUrl('v50.5');
+
+        expect(url).toEqual('/services/data/v50.5/sobjects/Task/@{NewAccount.id}?fields=companyName');
+    });
 });
 
+describe('Request.validate', () => {
+    it('returns true is request is valid', () => {
+       const r: Request = new Request({
+           method: 'GET',
+           sobject: 'Lead',
+           params: ['A_LEAD_ID'],
+       });
+
+        expect(r.validate()).toBeTruthy();
+    });
+
+    it('throws if request has invalid parts', async() => {
+        const r: Request = new Request({
+            method: 'GET',
+            sobject: 'Lead',
+            body: { will: 'fail' },
+        });
+
+        let error;
+        try {
+            r.validate();
+        } catch (err) {
+            error = err;
+        }
+
+        expect(error.message).toBe('\'body\' is not supported with GET or HEAD methods.');
+    });
+});
 
 describe('Request.execute', () => {
     it('should return data on success', async() => {
-        const r: Request = new Request(
-            'POST',
-            'Task',
-            { foo: 'bar' },
-            'v46.0',
-        );
+        const r: Request = new Request({
+            method: 'POST',
+            sobject: 'Task',
+            body: { foo: 'bar' },
+            apiVersion: 'v46.0',
+        });
 
         const fakeAxios = mockedAxios.create({
             baseURL: 'FakeBaseUrl',
@@ -40,12 +87,12 @@ describe('Request.execute', () => {
     });
 
     it('throws on error', async() => {
-        const r: Request = new Request(
-            'POST',
-            'Task',
-            { totally: 'wrong' },
-            'v46.0',
-        );
+        const r: Request = new Request({
+            method: 'POST',
+            sobject: 'Task',
+            body: { totally: 'wrong' },
+            apiVersion: 'v46.0',
+        });
 
         const fakeAxios = mockedAxios.create({
             baseURL: 'FakeBaseUrl',
