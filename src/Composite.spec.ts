@@ -5,7 +5,11 @@ import mockedAxios from 'axios';
 describe('Composite.add', () => {
     it('adds a new CompositeRequest', () => {
         const c: Composite = new Composite(true);
-        const testRequest: Request = new Request('POST', 'Lead', {heck: 'yeah'});
+        const testRequest: Request = new Request({
+            method: 'POST',
+            sobject: 'Lead',
+            body: { heck: 'yeah' },
+        });
 
         expect(c.requests).toHaveLength(0);
 
@@ -18,7 +22,11 @@ describe('Composite.add', () => {
 
     it('can be chained', () => {
         const c: Composite = new Composite(true);
-        const testRequest: Request = new Request('POST', 'Lead', {heck: 'yeah'});
+        const testRequest: Request = new Request({
+            method: 'POST',
+            sobject: 'Lead',
+            body: { heck: 'yeah' },
+        });
 
         expect(c.requests).toHaveLength(0);
 
@@ -51,8 +59,16 @@ describe('Composite.buildUrl', () => {
 describe('Composite.buildPayload', () => {
     it('creates a payload with loaded requests', async() => {
         const c: Composite = new Composite(true);
-        const testFirst: Request = new Request('POST', 'Lead', {heck: 'yeah'});
-        const testNext: Request = new Request('POST', 'Task', {sup: 'bruh', WhoId: '@{NewLead.id}'});
+        const testFirst: Request = new Request({
+            method: 'POST',
+            sobject: 'Lead',
+            body: { heck: 'yeah' },
+        });
+        const testNext: Request = new Request({
+            method: 'POST',
+            sobject: 'Task',
+            body: {sup: 'bruh', WhoId: '@{NewLead.id}'},
+        });
 
         c
             .add({ referenceId: "NewLead", request: testFirst })
@@ -65,13 +81,43 @@ describe('Composite.buildPayload', () => {
         expect(payload.compositeRequest[0].referenceId).toBe('NewLead');
         expect(payload.compositeRequest[1].referenceId).toBe('AddTask');
     });
+
+    it('creates a payload with valid body usage', async() => {
+        const c: Composite = new Composite(true);
+        const testFirst: Request = new Request({
+            method: 'GET',
+            sobject: 'Lead',
+            params: ['THE_LEAD_ID'],
+        });
+        const testNext: Request = new Request({
+            method: 'POST',
+            sobject: 'Task',
+            body: {sup: 'bruh', WhoId: '@{NewLead.id}'},
+        });
+
+        c
+            .add({ referenceId: "NewLead", request: testFirst })
+            .add({ referenceId: 'AddTask', request: testNext });
+
+        const payload = c.buildPayload('v50.0');
+
+        expect(payload.compositeRequest[0]).not.toHaveProperty('body');
+    });
 });
 
 describe('Composite.execute', () => {
     it('should return data on success', async() => {
         const c: Composite = new Composite(true);
-        const testFirst: Request = new Request('POST', 'Lead', {heck: 'yeah'});
-        const testNext: Request = new Request('POST', 'Task', {sup: 'bruh', WhoId: '@{NewLead.id}'});
+        const testFirst: Request = new Request({
+            method: 'POST',
+            sobject: 'Lead',
+            body: { heck: 'yeah' },
+        });
+        const testNext: Request = new Request({
+            method: 'POST',
+            sobject: 'Task',
+            body: {sup: 'bruh', WhoId: '@{NewLead.id}'},
+        });
 
         c
             .add({ referenceId: "NewLead", request: testFirst })
@@ -91,8 +137,16 @@ describe('Composite.execute', () => {
 
     it('throws on error', async() => {
         const c: Composite = new Composite(true);
-        const testFirst: Request = new Request('POST', 'Lead', {heck: 'yeah'});
-        const testNext: Request = new Request('POST', 'Task', {sup: 'bruh', WhoId: '@{NewLead.id}'});
+        const testFirst: Request = new Request({
+            method: 'POST',
+            sobject: 'Lead',
+            body: { heck: 'yeah' },
+        });
+        const testNext: Request = new Request({
+            method: 'POST',
+            sobject: 'Task',
+            body: {sup: 'bruh', WhoId: '@{NewLead.id}'},
+        });
 
         c
             .add({ referenceId: "NewLead", request: testFirst })
