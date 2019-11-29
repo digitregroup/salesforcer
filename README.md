@@ -13,6 +13,10 @@
 SalesForcer is a wrapper around SalesForce API allowing to simply build single and composite requests.    
 It uses [axios](https://github.com/axios/axios) to make HTTP requests.
 
+**LIMITATIONS AND DISCLAIMER**  
+This library is in [pre 1.0.0 state](https://semver.org/#spec-item-4). Api and structure can change and break frequently.  
+Currently only `sobjects` requests are supported. It is not possible to compose `query` requests.
+
 
 ## Usage
 
@@ -42,7 +46,11 @@ const executor = new Exectutor({
    username: 'fakeUsername',
 });
 
-const request = new Request('POST', 'Task', {foo: 'bar'});
+const request = new Request({
+    method: 'POST',
+    sobject: 'Task',
+    body: { foo: 'bar' },
+});
 
 await executor.auth();
 const response = await executor.execute(request);
@@ -66,11 +74,19 @@ const composite = new Composite(true);
 composite
     .add({
         referenceId: 'NewLead',
-        request: new Request('POST', 'Lead', {foo: 'bar'}),
+        request: new Request({
+            method: 'POST',
+            sobject: 'Task',
+            body: { foo: 'bar' },
+        }),
     })
     .add({
         referenceId: 'AddTask',
-        request: new Request('POST', 'Task', {bar: 'baz', WhoId: '@{NewLead.id}'}),
+        request: new Request({
+            method: 'POST',
+            sobject: 'Task',
+            body: { bar: 'baz', WhoId: '@{NewLead.id}' },
+        }),
     });
 
 await executor.auth();
@@ -88,6 +104,11 @@ const response = await executor.execute(composite);
 - `apiVersion` \<[string]>
 - `axios` \<[AxiosInstance]>
 - returns: \<[Promise]\<any>>
+
+
+### interface: `Validable`
+#### `validate(): boolean | never;`
+- returns: \<[boolean]>
 
 
 ### class: `Executor`
@@ -109,18 +130,20 @@ const response = await executor.execute(composite);
 - returns: \<[Promise]\<any>>
 
 
-### class: `Request` implements `Executable`
-#### `constructor(method, sobject, body, apiVersion?)`
+### class: `Request` implements `Executable`, `Validable`
+#### `constructor({ method, sobject, body?, params?, qs?, apiVersion? });`
 - `method` \<[Method]>
 - `sobject` \<[string]>
 - `body` \<[object]>
-- `apiVersion` \<[string] | null>
+- `params` \<[Array]<[string]>>
+- `qs` \<[ParsedUrlQueryInput]>
+- `apiVersion` \<[string]>
 
 
 ### class: `Composite` implements `Executable`
-#### `constructor(allOrNone, apiVersion)`
+#### `constructor(allOrNone, apiVersion?)`
 - `allOrNone` \<[boolean]>
-- `apiVersion` \<[string] | null>
+- `apiVersion` \<[string]>
 
 #### `add({ request, referenceId }): Composite`
 - `method` \<[Method]>
@@ -160,9 +183,14 @@ This will:
 [string]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type "String"
 [boolean]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type "Boolean"
 [object]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Objects "Object"
+[Array]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Indexed_collections_Arrays_and_typed_Arrays "Array"
 [Promise]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise "Promise"
 [AxiosInstance]: https://github.com/axios/axios/blob/v0.19.0/index.d.ts#L123 "AxiosInstance"
+[ParsedUrlQueryInput]: https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/node/querystring.d.ts#L13 "ParsedUrlQueryInput"
 [Method]: https://github.com/axios/axios/blob/v0.19.0/index.d.ts#L24 "Method"
 [Executable]: #interface-executable
 [Request]: #class-request-implements-executable
 [Composite]: #class-composite-implements-executable
+
+
+
