@@ -15,7 +15,7 @@ It uses [axios](https://github.com/axios/axios) to make HTTP requests.
 
 **LIMITATIONS AND DISCLAIMER**  
 This library is in [pre 1.0.0 state](https://semver.org/#spec-item-4). Api and structure can change and break frequently.  
-Currently only `sobjects` requests are supported. It is not possible to compose `query` requests.
+Currently only `sobjects` and `query` requests are supported.
 
 
 ## Usage
@@ -31,65 +31,47 @@ Install using `yarn`:
 yarn add @digitregroup/salesforcer
 ```
 
+
 ### Request example
 
 ```js
-const {Exectutor, Request} = require('@digitregroup/salesforcer');
-const executor = new Exectutor({
-   apiVersion: 'v48.0',
-   baseUrl: 'https://my.fake.tld',
-   authUrl: 'https://auth.my.fake.tld',
-   clientId: 'fakeClientId',
-   clientSecret: 'fakeClientSecret',
-   grantType: 'password',
-   password: 'fakeValidPassword',
-   username: 'fakeUsername',
-});
+const {Executor, SObjects} = require('@digitregroup/salesforcer');
+const executor = new Executor({ /* Ommited */ });
 
-const request = new Request({
+const soRequest = new SObjects({
     method: 'POST',
     sobject: 'Task',
     body: { foo: 'bar' },
 });
 
-await executor.auth();
-const response = await executor.execute(request);
+const response = await executor.execute(soRequest);
 ```
 
 ### Composite example
+
 ```js
-const {Exectutor, Request, Composite} = require('@digitregroup/salesforcer');
-const executor = new Exectutor({
-   apiVersion: 'v48.0',
-   baseUrl: 'https://my.fake.tld',
-   authUrl: 'https://auth.my.fake.tld',
-   clientId: 'fakeClientId',
-   clientSecret: 'fakeClientSecret',
-   grantType: 'password',
-   password: 'fakeValidPassword',
-   username: 'fakeUsername',
-});
+const {Executor, SObjects, Composite} = require('@digitregroup/salesforcer');
+const executor = new Executor({ /* Ommited */ });
 
 const composite = new Composite(true);
 composite
     .add({
         referenceId: 'NewLead',
-        request: new Request({
+        request: new SObjects({
             method: 'POST',
-            sobject: 'Task',
+            sobject: 'Lead',
             body: { foo: 'bar' },
         }),
     })
     .add({
         referenceId: 'AddTask',
-        request: new Request({
+        request: new SObjects({
             method: 'POST',
             sobject: 'Task',
             body: { bar: 'baz', WhoId: '@{NewLead.id}' },
         }),
     });
 
-await executor.auth();
 const response = await executor.execute(composite);
 ```
 
@@ -111,6 +93,11 @@ const response = await executor.execute(composite);
 - returns: \<[boolean]>
 
 
+### abstract class: `Request` implements `Executable`, `Validable`
+#### `getBody(): object | undefined;`
+#### `getMethod(): Method;`
+
+
 ### class: `Executor`
 #### `constructor({ authUrl, grantType, clientId, clientSecret, username, password, baseUrl, apiVersion })`
 - `authUrl` \<[string]>
@@ -130,7 +117,13 @@ const response = await executor.execute(composite);
 - returns: \<[Promise]\<any>>
 
 
-### class: `Request` implements `Executable`, `Validable`
+### class: `Query` extends `Request`
+#### `constructor({ method, sobject, body?, params?, qs?, apiVersion? });`
+- `query` \<[string]>
+- `apiVersion` \<[string]>
+
+
+### class: `SObjects` extends `Request`
 #### `constructor({ method, sobject, body?, params?, qs?, apiVersion? });`
 - `method` \<[Method]>
 - `sobject` \<[string]>
@@ -167,7 +160,6 @@ yarn lint
 ```sh
 yarn test
 ```
-Mocks goes in `src/__mocks__/` then Jest handle the rest.
 
 ### Releasing version
 ```sh

@@ -1,7 +1,5 @@
 import * as qs from 'querystring';
 import Request from './Request';
-import Executable from './Executable';
-import Validable from './Validable';
 import {AxiosInstance, Method} from 'axios';
 
 interface SObjectsConfig {
@@ -13,7 +11,7 @@ interface SObjectsConfig {
     apiVersion?: string;
 }
 
-class SObjects extends Request implements Executable, Validable {
+class SObjects extends Request {
     static readonly urlSuffix: string = '/sobjects/';
     static readonly methodBodyExclude: Array<Method> = ['GET', 'HEAD'];
 

@@ -1,6 +1,4 @@
 import Request from './Request';
-import Executable from './Executable';
-import Validable from './Validable';
 import {AxiosInstance, Method} from 'axios';
 
 interface QueryConfig {
@@ -8,7 +6,7 @@ interface QueryConfig {
     apiVersion?: string;
 }
 
-class Query extends Request implements Executable, Validable {
+class Query extends Request {
     static readonly urlSuffix: string = '/query/';
     static readonly method: Method = 'GET';
 
