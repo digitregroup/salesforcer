@@ -20,9 +20,8 @@ interface CompositeRequest {
 }
 
 class Composite implements Executable {
-
-    static readonly urlPrefix = '/services/data/';
-    static readonly urlSuffix = '/composite';
+    static readonly urlPrefix: string = '/services/data/';
+    static readonly urlSuffix: string = '/composite';
 
     allOrNone: boolean;
     requests: Array<CompositeRequest>;
@@ -53,12 +52,13 @@ class Composite implements Executable {
             cRequest.request.validate();
 
             const p: CompositeRequestPayload = {
-                method: cRequest.request.method,
+                method: cRequest.request.getMethod(),
                 referenceId: cRequest.referenceId,
                 url: cRequest.request.buildUrl(apiVersion),
             };
-            if (cRequest.request.body) {
-                p.body = cRequest.request.body;
+
+            if (cRequest.request.getBody()) {
+                p.body = cRequest.request.getBody();
             }
 
             payload.compositeRequest.push(p);
