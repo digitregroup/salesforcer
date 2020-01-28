@@ -1,3 +1,4 @@
+import axios from 'axios';
 import Executor from './Executor';
 
 describe('Executor.auth', () => {
@@ -13,9 +14,25 @@ describe('Executor.auth', () => {
             username: "fakeUsername",
         });
 
+        (axios.post as jest.Mock) = jest.fn(async() => {
+            return {
+                data: {
+                    "access_token": "fakeAccessToken",
+                    "instance_url": "https://my.fake.tld",
+                    "id": "https://my.fake.tld/id/00D1X0000008bP2UAI/0051t000003LPVHAA4",
+                    "token_type": "Bearer",
+                    "issued_at": "1573829868942",
+                    "signature": "RmFrZSBzaWduYXR1cmU=",
+                },
+                status: 200,
+                statusText: 'OK',
+            }
+        });
+
         await e.auth();
 
         expect(e.token).toEqual('fakeAccessToken');
+        expect(axios.post).toHaveBeenCalledTimes(1);
     });
 
     it('throws on fail', async () => {
@@ -30,6 +47,25 @@ describe('Executor.auth', () => {
             username: "fakeUsername",
         });
 
+        (axios.post as jest.Mock) = jest.fn(async() => {
+            throw {
+                message: 'Request failed with status code 400',
+                isAxiosError: true,
+                response: {
+                    data: {
+                        error: 'invalid_grant',
+                        // eslint-disable-next-line @typescript-eslint/camelcase
+                        error_description: 'authentication failure',
+                    },
+                    config: {},
+                    headers: {},
+                    status: 400,
+                    statusText: 'Bad Request',
+                },
+            };
+        });
+
         await expect(e.auth()).rejects.toBeTruthy();
+        expect(axios.post).toHaveBeenCalledTimes(1);
     });
 });

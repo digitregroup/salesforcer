@@ -1,30 +1,30 @@
-import Request from './Request';
-import mockedAxios from 'axios';
+import axios from 'axios';
+import SObjects from './SObjects';
 
-describe('Request.buildUrl', () => {
-    it('returns simplest url with Request API version', () => {
-        const r: Request = new Request({ method: 'POST', sobject: 'Task', body: {}, apiVersion: 'v46.0' });
+describe('SObjects.buildUrl', () => {
+    it('returns simplest url with Requests API version', () => {
+        const r: SObjects = new SObjects({ method: 'POST', sobject: 'Task', body: {}, apiVersion: 'v46.0' });
         const url: string = r.buildUrl('v50.5');
 
         expect(url).toEqual('/services/data/v46.0/sobjects/Task');
     });
 
     it('returns simplest url with Executor API version', () => {
-        const r: Request = new Request({ method: 'POST', sobject: 'Task', body: {} });
+        const r: SObjects = new SObjects({ method: 'POST', sobject: 'Task', body: {} });
         const url: string = r.buildUrl('v50.5');
 
         expect(url).toEqual('/services/data/v50.5/sobjects/Task');
     });
 
     it('returns url with params', () => {
-        const r: Request = new Request({ method: 'POST', sobject: 'Task', params: ['@{NewAccount.id}']});
+        const r: SObjects = new SObjects({ method: 'POST', sobject: 'Task', params: ['@{NewAccount.id}']});
         const url: string = r.buildUrl('v50.5');
 
         expect(url).toEqual('/services/data/v50.5/sobjects/Task/@{NewAccount.id}');
     });
 
     it('returns url with params and query string', () => {
-        const r: Request = new Request({
+        const r: SObjects = new SObjects({
             method: 'POST',
             sobject: 'Task',
             params: ['@{NewAccount.id}'],
@@ -36,9 +36,9 @@ describe('Request.buildUrl', () => {
     });
 });
 
-describe('Request.validate', () => {
+describe('SObjects.validate', () => {
     it('returns true is request is valid', () => {
-       const r: Request = new Request({
+       const r: SObjects = new SObjects({
            method: 'GET',
            sobject: 'Lead',
            params: ['A_LEAD_ID'],
@@ -48,7 +48,7 @@ describe('Request.validate', () => {
     });
 
     it('throws if request has invalid parts', async() => {
-        const r: Request = new Request({
+        const r: SObjects = new SObjects({
             method: 'GET',
             sobject: 'Lead',
             body: { will: 'fail' },
@@ -65,18 +65,32 @@ describe('Request.validate', () => {
     });
 });
 
-describe('Request.execute', () => {
+describe('SObjects.execute', () => {
     it('should return data on success', async() => {
-        const r: Request = new Request({
+        const r: SObjects = new SObjects({
             method: 'POST',
             sobject: 'Task',
             body: { foo: 'bar' },
             apiVersion: 'v46.0',
         });
 
-        const fakeAxios = mockedAxios.create({
+        const fakeAxios = axios.create({
             baseURL: 'FakeBaseUrl',
             headers: { Authorization: 'Bearer RmFrZSBzaWduYXR1cmU=' },
+        });
+
+        (fakeAxios.request as jest.Mock) = jest.fn(async() => {
+            return {
+                data: {
+                    id: '00Q1w0000029yNwEAI',
+                    success: true,
+                    errors: [],
+                },
+                status: 201,
+                statusText: 'OK',
+                headers: {},
+                config: {},
+            };
         });
 
         const data = await r.execute('v50.0', fakeAxios);
@@ -87,16 +101,34 @@ describe('Request.execute', () => {
     });
 
     it('throws on error', async() => {
-        const r: Request = new Request({
+        const r: SObjects = new SObjects({
             method: 'POST',
             sobject: 'Task',
             body: { totally: 'wrong' },
             apiVersion: 'v46.0',
         });
 
-        const fakeAxios = mockedAxios.create({
+        const fakeAxios = axios.create({
             baseURL: 'FakeBaseUrl',
             headers: { Authorization: 'Bearer RmFrZSBzaWduYXR1cmU=' },
+        });
+
+        (fakeAxios.request as jest.Mock) = jest.fn(async() => {
+            throw {
+                message: 'Request failed with status code 400',
+                isAxiosError: true,
+                response: {
+                    data: [{
+                        "message": "You're creating a duplicate record. We recommend you use an existing record instead.",
+                        "errorCode": "DUPLICATES_DETECTED",
+                        "fields": [],
+                    }],
+                    config: {},
+                    headers: {},
+                    status: 400,
+                    statusText: 'Bad Request',
+                },
+            };
         });
 
         let error;
@@ -112,5 +144,31 @@ describe('Request.execute', () => {
         expect(error.response.data[0]).toHaveProperty('errorCode');
         expect(error.response.status).toBe(400);
         expect(error.response.statusText).toBe('Bad Request');
+    });
+});
+
+describe('SObjects.getBody', () => {
+    it('should return nothing when no body passed', () => {
+        const r: SObjects = new SObjects({ method: 'POST', sobject: 'Task' });
+
+        expect(r.getBody()).toBeUndefined();
+    });
+
+    it('should return object when body is set', () => {
+        const r: SObjects = new SObjects({
+            method: 'POST',
+            sobject: 'Task',
+            body: { foo: 'bar' },
+        });
+
+        expect(r.getBody()).toEqual({ foo: 'bar' });
+    });
+});
+
+describe('SObjects.getMethod', () => {
+    it('should return defined method', () => {
+        const r: SObjects = new SObjects({ method: 'POST', sobject: 'Task' });
+
+        expect(r.getMethod()).toBe('POST');
     });
 });

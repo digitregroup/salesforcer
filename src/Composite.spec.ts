@@ -1,11 +1,11 @@
+import axios from 'axios';
 import Composite from './Composite';
-import Request from "./Request";
-import mockedAxios from 'axios';
+import SObjects from './SObjects';
 
 describe('Composite.add', () => {
     it('adds a new CompositeRequest', () => {
         const c: Composite = new Composite(true);
-        const testRequest: Request = new Request({
+        const testRequest: SObjects = new SObjects({
             method: 'POST',
             sobject: 'Lead',
             body: { heck: 'yeah' },
@@ -22,7 +22,7 @@ describe('Composite.add', () => {
 
     it('can be chained', () => {
         const c: Composite = new Composite(true);
-        const testRequest: Request = new Request({
+        const testRequest: SObjects = new SObjects({
             method: 'POST',
             sobject: 'Lead',
             body: { heck: 'yeah' },
@@ -41,7 +41,7 @@ describe('Composite.add', () => {
 });
 
 describe('Composite.buildUrl', () => {
-    it('returns url with Request API version', () => {
+    it('returns url with Requests API version', () => {
         const c: Composite = new Composite(true, 'v60.5');
         const url: string = c.buildUrl('v50.5');
 
@@ -59,12 +59,12 @@ describe('Composite.buildUrl', () => {
 describe('Composite.buildPayload', () => {
     it('creates a payload with loaded requests', async() => {
         const c: Composite = new Composite(true);
-        const testFirst: Request = new Request({
+        const testFirst: SObjects = new SObjects({
             method: 'POST',
             sobject: 'Lead',
             body: { heck: 'yeah' },
         });
-        const testNext: Request = new Request({
+        const testNext: SObjects = new SObjects({
             method: 'POST',
             sobject: 'Task',
             body: {sup: 'bruh', WhoId: '@{NewLead.id}'},
@@ -84,12 +84,12 @@ describe('Composite.buildPayload', () => {
 
     it('creates a payload with valid body usage', async() => {
         const c: Composite = new Composite(true);
-        const testFirst: Request = new Request({
+        const testFirst: SObjects = new SObjects({
             method: 'GET',
             sobject: 'Lead',
             params: ['THE_LEAD_ID'],
         });
-        const testNext: Request = new Request({
+        const testNext: SObjects = new SObjects({
             method: 'POST',
             sobject: 'Task',
             body: {sup: 'bruh', WhoId: '@{NewLead.id}'},
@@ -108,12 +108,12 @@ describe('Composite.buildPayload', () => {
 describe('Composite.execute', () => {
     it('should return data on success', async() => {
         const c: Composite = new Composite(true);
-        const testFirst: Request = new Request({
+        const testFirst: SObjects = new SObjects({
             method: 'POST',
             sobject: 'Lead',
             body: { heck: 'yeah' },
         });
-        const testNext: Request = new Request({
+        const testNext: SObjects = new SObjects({
             method: 'POST',
             sobject: 'Task',
             body: {sup: 'bruh', WhoId: '@{NewLead.id}'},
@@ -123,9 +123,34 @@ describe('Composite.execute', () => {
             .add({ referenceId: "NewLead", request: testFirst })
             .add({ referenceId: 'AddTask', request: testNext });
 
-        const fakeAxios = mockedAxios.create({
+        const fakeAxios = axios.create({
             baseURL: 'FakeBaseUrl',
             headers: { Authorization: 'Bearer RmFrZSBzaWduYXR1cmU=' },
+        });
+
+        (fakeAxios.request as jest.Mock) = jest.fn(async({ data }) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const compositeResponse: any[] = [];
+            for (const r of data.compositeRequest) {
+                compositeResponse.push({
+                    body: {
+                        id: '001R00000033I6AIAU',
+                        success: true,
+                        errors: [],
+                    },
+                    httpHeaders: { Location: r.url + '/001R00000033I6AIAU' },
+                    httpStatusCode: 201,
+                    referenceId: r.referenceId,
+                });
+            }
+
+            return {
+                data: { compositeResponse },
+                status: 201,
+                statusText: 'OK',
+                headers: {},
+                config: {},
+            };
         });
 
         const data = await c.execute('v50.0', fakeAxios);
@@ -137,12 +162,12 @@ describe('Composite.execute', () => {
 
     it('throws on error', async() => {
         const c: Composite = new Composite(true);
-        const testFirst: Request = new Request({
+        const testFirst: SObjects = new SObjects({
             method: 'POST',
             sobject: 'Lead',
             body: { heck: 'yeah' },
         });
-        const testNext: Request = new Request({
+        const testNext: SObjects = new SObjects({
             method: 'POST',
             sobject: 'Task',
             body: {sup: 'bruh', WhoId: '@{NewLead.id}'},
@@ -152,9 +177,38 @@ describe('Composite.execute', () => {
             .add({ referenceId: "NewLead", request: testFirst })
             .add({ referenceId: 'badTask', request: testNext });
 
-        const fakeAxios = mockedAxios.create({
+        const fakeAxios = axios.create({
             baseURL: 'FakeBaseUrl',
             headers: { Authorization: 'Bearer RmFrZSBzaWduYXR1cmU=' },
+        });
+
+        (fakeAxios.request as jest.Mock) = jest.fn(async({ data }) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const compositeResponse: any[] = [];
+            data.compositeRequest.forEach(() => {
+                compositeResponse.push({
+                    "body" : [ {
+                        "message" : "Email: invalid email address: Not a real email address",
+                        "errorCode" : "INVALID_EMAIL_ADDRESS",
+                        "fields" : [ "Email" ],
+                    } ],
+                    "httpHeaders" : { },
+                    "httpStatusCode" : 400,
+                    "referenceId" : "badContact",
+                });
+            });
+
+            throw {
+                message: 'Request failed with status code 400',
+                isAxiosError: true,
+                response: {
+                    data: { compositeResponse },
+                    config: {},
+                    headers: {},
+                    status: 400,
+                    statusText: 'Bad Request',
+                },
+            };
         });
 
         let error;
