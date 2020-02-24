@@ -1,64 +1,60 @@
-import Request from "./Request";
-import Executable from "./Executable";
-import {AxiosInstance, Method} from 'axios';
+import Composable from './Composable';
+import Executable from './Executable';
+import axios, {AxiosResponse, Method} from 'axios';
+import {CompositeResponse} from './Responses';
+import Auth from './Auth';
 
-interface CompositeRequestPayload {
+
+export interface CompositeRequestPayload {
     method: Method;
     referenceId: string;
     url: string;
     body?: object;
 }
 
-interface CompositePayload {
+export interface CompositePayload {
     allOrNone: boolean;
     compositeRequest: Array<CompositeRequestPayload>;
 }
 
-interface CompositeRequest {
-    request: Request;
-    referenceId: string;
-}
+export default class Composite implements Executable {
+    static readonly pathPrefix: string = '/services/data/';
+    static readonly pathSuffix: string = '/composite';
+    static readonly method: Method = 'POST';
 
-class Composite implements Executable {
-    static readonly urlPrefix: string = '/services/data/';
-    static readonly urlSuffix: string = '/composite';
+    private readonly allOrNone: boolean;
+    private readonly requests: Map<string, Composable>;
+    private apiVersion?: string;
 
-    allOrNone: boolean;
-    requests: Array<CompositeRequest>;
-    apiVersion?: string;
-
-    constructor(allOrNone: boolean, apiVersion?: string) {
+    public constructor(allOrNone: boolean, apiVersion?: string) {
         this.allOrNone = allOrNone;
-        this.requests = [];
-
-        if (apiVersion) {
-            this.apiVersion = apiVersion;
-        }
+        this.requests = new Map<string, Composable>();
+        this.apiVersion = apiVersion;
     }
 
-    add(compositeRequest: CompositeRequest): Composite {
-        this.requests.push(compositeRequest);
+    public add(referenceId: string, request: Composable): Composite {
+        this.requests.set(referenceId, request);
 
         return this;
     }
 
-    buildPayload(apiVersion: string): CompositePayload {
+    private async buildPayload(auth: Auth): Promise<CompositePayload> {
         const payload: CompositePayload = {
             allOrNone: this.allOrNone,
             compositeRequest: [],
         };
 
-        for (const cRequest of this.requests) {
-            cRequest.request.validate();
+        for (const [ref, req] of this.requests) {
+            req.validate();
 
             const p: CompositeRequestPayload = {
-                method: cRequest.request.getMethod(),
-                referenceId: cRequest.referenceId,
-                url: cRequest.request.buildUrl(apiVersion),
+                method: req.getMethod(),
+                referenceId: ref,
+                url: await req.buildUrl(auth),
             };
 
-            if (cRequest.request.getBody()) {
-                p.body = cRequest.request.getBody();
+            if (req.getBody()) {
+                p.body = req.getBody();
             }
 
             payload.compositeRequest.push(p);
@@ -67,25 +63,26 @@ class Composite implements Executable {
         return payload;
     }
 
-    buildUrl(apiVersion: string): string {
+    private async buildUrl(auth: Auth): Promise<string> {
         return [
-            Composite.urlPrefix,
-            this.apiVersion || apiVersion,
-            Composite.urlSuffix,
+            await auth.getInstance(),
+            Composite.pathPrefix,
+            this.apiVersion || auth.getApiVersion(),
+            Composite.pathSuffix,
         ].join('');
     }
 
-    // Data from external APIs could be anything and could also change
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async execute(apiVersion: string, axios: AxiosInstance): Promise<any> {
-        const res = await axios.request({
-            url: this.buildUrl(apiVersion),
-            method: 'POST',
-            data: this.buildPayload(apiVersion),
+    public async execute(auth: Auth): Promise<CompositeResponse> {
+        const res: AxiosResponse<CompositeResponse> = await axios.request({
+            url: await this.buildUrl(auth),
+            method: Composite.method,
+            data: await this.buildPayload(auth),
         });
 
         return res.data;
     }
-}
 
-export default Composite;
+    public getRequests(): Map<string, Composable> {
+        return this.requests;
+    }
+}
