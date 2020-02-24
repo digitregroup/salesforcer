@@ -1,8 +1,11 @@
 import * as qs from 'querystring';
-import Request from './Request';
-import {AxiosInstance, Method} from 'axios';
+import Composable from './Composable';
+import axios, {AxiosResponse, Method} from 'axios';
+import {RecordResponse} from './Responses';
+import Auth from './Auth';
+import Executable from './Executable';
 
-interface SObjectsConfig {
+export interface SObjectsConfig {
     method: Method;
     sobject: string;
     body?: object;
@@ -11,9 +14,11 @@ interface SObjectsConfig {
     apiVersion?: string;
 }
 
-class SObjects extends Request {
-    static readonly urlSuffix: string = '/sobjects/';
-    static readonly methodBodyExclude: Array<Method> = ['GET', 'HEAD'];
+export default class SObjects implements Executable, Composable {
+    static readonly pathPrefix: string = '/services/data/';
+    static readonly pathSuffix: string = '/sobjects/';
+    static readonly bodyExcludeMethods: Array<Method> = ['GET', 'HEAD'];
+    static readonly paramsAllowedMethods: Array<Method> = ['HEAD', 'GET', 'PATCH', 'DELETE'];
 
     method: Method;
     sobject: string;
@@ -22,7 +27,7 @@ class SObjects extends Request {
     qs?: qs.ParsedUrlQueryInput;
     apiVersion?: string;
 
-    constructor({
+    public constructor({
         method,
         sobject,
         body,
@@ -30,28 +35,20 @@ class SObjects extends Request {
         qs,
         apiVersion,
     }: SObjectsConfig) {
-        super();
-
         this.method = method;
         this.sobject = sobject;
         this.body = body;
-
-        if (qs) {
-            this.qs = qs;
-        }
-        if (params) {
-            this.params = params;
-        }
-        if (apiVersion) {
-            this.apiVersion = apiVersion;
-        }
+        this.qs = qs;
+        this.params = params;
+        this.apiVersion = apiVersion;
     }
 
-    buildUrl(apiVersion: string): string {
+    public async buildUrl(auth: Auth): Promise<string> {
         let url: string = [
-            SObjects.urlPrefix,
-            this.apiVersion || apiVersion,
-            SObjects.urlSuffix,
+            await auth.getInstance(),
+            SObjects.pathPrefix,
+            this.apiVersion || auth.getApiVersion(),
+            SObjects.pathSuffix,
             this.sobject,
         ].join('');
 
@@ -66,13 +63,11 @@ class SObjects extends Request {
         return url;
     }
 
-    // Data from external APIs could be anything and could also change
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async execute(apiVersion: string, axios: AxiosInstance): Promise<any> {
+    public async execute<T extends RecordResponse>(auth: Auth): Promise<T> {
         this.validate();
 
-        const res = await axios.request({
-            url: this.buildUrl(apiVersion),
+        const res: AxiosResponse<T> = await axios.request({
+            url: await this.buildUrl(auth),
             method: this.method,
             data: this.body,
         });
@@ -80,21 +75,23 @@ class SObjects extends Request {
         return res.data;
     }
 
-    validate(): boolean | never {
-        if (SObjects.methodBodyExclude.indexOf(this.method) !== -1 && this.body) {
+    public validate(): boolean | never {
+        if (this.params && SObjects.paramsAllowedMethods.indexOf(this.method) === -1) {
+            throw new Error(`Method ${this.method} is not supported with sobjects with params API.`);
+        }
+
+        if (this.body && SObjects.bodyExcludeMethods.indexOf(this.method) !== -1) {
             throw new Error('\'body\' is not supported with GET or HEAD methods.');
         }
 
         return true;
     }
 
-    getBody(): object | undefined {
+    public getBody(): object | undefined {
         return this.body;
     }
 
-    getMethod(): Method {
+    public getMethod(): Method {
         return this.method;
     }
 }
-
-export default SObjects;

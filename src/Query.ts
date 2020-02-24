@@ -1,13 +1,17 @@
-import Request from './Request';
-import {AxiosInstance, Method} from 'axios';
+import axios, {AxiosResponse, Method} from 'axios';
+import {QueryResponse, SalesforceRecord} from './Responses';
+import Auth from './Auth';
+import Composable from './Composable';
+import Executable from './Executable';
 
-interface QueryConfig {
+export interface QueryConfig {
     query: string;
     apiVersion?: string;
 }
 
-class Query extends Request {
-    static readonly urlSuffix: string = '/query/';
+export default class Query implements Executable, Composable {
+    static readonly pathPrefix: string = '/services/data/';
+    static readonly pathSuffix: string = '/query/';
     static readonly method: Method = 'GET';
 
     query: string;
@@ -17,48 +21,40 @@ class Query extends Request {
         query,
         apiVersion,
     }: QueryConfig) {
-        super();
-
         this.query = query;
-
-        if (apiVersion) {
-            this.apiVersion = apiVersion;
-        }
+        this.apiVersion = apiVersion;
     }
 
-    buildUrl(apiVersion: string): string {
+    public async buildUrl(auth: Auth): Promise<string> {
         return [
-            Query.urlPrefix,
-            this.apiVersion || apiVersion,
-            Query.urlSuffix,
+            await auth.getInstance(),
+            Query.pathPrefix,
+            this.apiVersion || auth.getApiVersion(),
+            Query.pathSuffix,
             '?q=' + this.query.replace(/\s/g, '+'),
         ].join('');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async execute(apiVersion: string, axios: AxiosInstance): Promise<any> {
+    public async execute<T extends SalesforceRecord>(auth: Auth): Promise<QueryResponse<T>> {
         this.validate();
 
-        const res = await axios.request({
-            url: this.buildUrl(apiVersion),
+        const res: AxiosResponse<QueryResponse<T>> = await axios.request({
+            url: await this.buildUrl(auth),
             method: Query.method,
         });
 
         return res.data;
     }
 
-    validate(): boolean | never {
-        // Nothing edge case to throw upon
+    public validate(): boolean | never {
         return true;
     }
 
-    getBody(): object | undefined {
+    public getBody(): object | undefined {
         return undefined;
     }
 
-    getMethod(): Method {
+    public getMethod(): Method {
         return Query.method;
     }
 }
-
-export default Query;

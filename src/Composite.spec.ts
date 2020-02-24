@@ -1,219 +1,164 @@
-import axios from 'axios';
+import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import Composite from './Composite';
 import SObjects from './SObjects';
+import Auth from './Auth';
+import {
+    CompositeResponse,
+    CompositeSubrequestResponse,
+    SalesforceError,
+    RecordCreateResponse,
+} from './Responses';
+
+
+const auth: Auth = new Auth({
+    apiVersion: 'v50.5',
+    baseUrl: 'https://my.fake.tld',
+    authUrl: 'https://auth.my.fake.tld',
+    clientId: 'fakeClientId',
+    clientSecret: 'fakeClientSecret',
+    grantType: 'password',
+    password: 'fakeInvalidPassword',
+    username: 'fakeUsername',
+});
+
+(auth.getInstance as jest.Mock) = jest.fn(async() => 'https://my.fake.tld');
+(auth.getToken as jest.Mock) = jest.fn(async() => 'fakeAccessToken');
+
 
 describe('Composite.add', () => {
     it('adds a new CompositeRequest', () => {
-        const c: Composite = new Composite(true);
-        const testRequest: SObjects = new SObjects({
+        const composite: Composite = new Composite(true);
+        const testReq: SObjects = new SObjects({
             method: 'POST',
             sobject: 'Lead',
             body: { heck: 'yeah' },
         });
 
-        expect(c.requests).toHaveLength(0);
+        expect(composite.getRequests().size).toBe(0);
 
-        c.add({ referenceId: "NewLead", request: testRequest });
+        composite.add('NewLead', testReq);
 
-        expect(c.requests).toHaveLength(1);
-        expect(c.requests[0].request).toEqual(testRequest);
-        expect(c.requests[0].referenceId).toEqual('NewLead');
+        const requests = composite.getRequests();
+        expect(requests.size).toBe(1);
+        expect(requests.has('NewLead')).toBeTruthy();
+        expect(requests.get('NewLead')).toEqual(testReq);
     });
 
     it('can be chained', () => {
-        const c: Composite = new Composite(true);
-        const testRequest: SObjects = new SObjects({
+        const composite: Composite = new Composite(true);
+        const testReq: SObjects = new SObjects({
             method: 'POST',
             sobject: 'Lead',
             body: { heck: 'yeah' },
         });
 
-        expect(c.requests).toHaveLength(0);
+        expect(composite.getRequests().size).toBe(0);
 
-        c
-            .add({ referenceId: "first", request: testRequest })
-            .add({ referenceId: "second", request: testRequest });
+        composite
+            .add('first', testReq)
+            .add('second', testReq);
 
-        expect(c.requests).toHaveLength(2);
-        expect(c.requests[0].referenceId).toEqual('first');
-        expect(c.requests[1].referenceId).toEqual('second');
-    });
-});
-
-describe('Composite.buildUrl', () => {
-    it('returns url with Requests API version', () => {
-        const c: Composite = new Composite(true, 'v60.5');
-        const url: string = c.buildUrl('v50.5');
-
-        expect(url).toEqual('/services/data/v60.5/composite');
-    });
-
-    it('returns url with Executor API version', () => {
-        const c: Composite = new Composite(true);
-        const url: string = c.buildUrl('v50.5');
-
-        expect(url).toEqual('/services/data/v50.5/composite');
-    });
-});
-
-describe('Composite.buildPayload', () => {
-    it('creates a payload with loaded requests', async() => {
-        const c: Composite = new Composite(true);
-        const testFirst: SObjects = new SObjects({
-            method: 'POST',
-            sobject: 'Lead',
-            body: { heck: 'yeah' },
-        });
-        const testNext: SObjects = new SObjects({
-            method: 'POST',
-            sobject: 'Task',
-            body: {sup: 'bruh', WhoId: '@{NewLead.id}'},
-        });
-
-        c
-            .add({ referenceId: "NewLead", request: testFirst })
-            .add({ referenceId: 'AddTask', request: testNext });
-
-        const payload = c.buildPayload('v50.0');
-
-        expect(payload.allOrNone).toBeTruthy();
-        expect(payload.compositeRequest).toHaveLength(2);
-        expect(payload.compositeRequest[0].referenceId).toBe('NewLead');
-        expect(payload.compositeRequest[1].referenceId).toBe('AddTask');
-    });
-
-    it('creates a payload with valid body usage', async() => {
-        const c: Composite = new Composite(true);
-        const testFirst: SObjects = new SObjects({
-            method: 'GET',
-            sobject: 'Lead',
-            params: ['THE_LEAD_ID'],
-        });
-        const testNext: SObjects = new SObjects({
-            method: 'POST',
-            sobject: 'Task',
-            body: {sup: 'bruh', WhoId: '@{NewLead.id}'},
-        });
-
-        c
-            .add({ referenceId: "NewLead", request: testFirst })
-            .add({ referenceId: 'AddTask', request: testNext });
-
-        const payload = c.buildPayload('v50.0');
-
-        expect(payload.compositeRequest[0]).not.toHaveProperty('body');
+        const requests = composite.getRequests();
+        expect(requests.size).toBe(2);
+        expect(requests.has('first')).toBeTruthy();
+        expect(requests.get('first')).toEqual(testReq);
+        expect(requests.has('second')).toBeTruthy();
+        expect(requests.get('second')).toEqual(testReq);
     });
 });
 
 describe('Composite.execute', () => {
+    const c: Composite = new Composite(true);
+    const testFirst: SObjects = new SObjects({
+        method: 'POST',
+        sobject: 'Lead',
+        body: { heck: 'yeah' },
+    });
+    const testNext: SObjects = new SObjects({
+        method: 'POST',
+        sobject: 'Task',
+        body: {sup: 'bruh', WhoId: '@{NewLead.id}'},
+    });
+    c
+        .add('NewLead', testFirst)
+        .add('AddTask', testNext);
+
     it('should return data on success', async() => {
-        const c: Composite = new Composite(true);
-        const testFirst: SObjects = new SObjects({
-            method: 'POST',
-            sobject: 'Lead',
-            body: { heck: 'yeah' },
-        });
-        const testNext: SObjects = new SObjects({
-            method: 'POST',
-            sobject: 'Task',
-            body: {sup: 'bruh', WhoId: '@{NewLead.id}'},
-        });
+        (axios.request as jest.Mock) = jest.fn(
+            async({ data }: AxiosRequestConfig): Promise<AxiosResponse<CompositeResponse>> => {
+                const compositeResponse: Array<CompositeSubrequestResponse> = [];
 
-        c
-            .add({ referenceId: "NewLead", request: testFirst })
-            .add({ referenceId: 'AddTask', request: testNext });
-
-        const fakeAxios = axios.create({
-            baseURL: 'FakeBaseUrl',
-            headers: { Authorization: 'Bearer RmFrZSBzaWduYXR1cmU=' },
-        });
-
-        (fakeAxios.request as jest.Mock) = jest.fn(async({ data }) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const compositeResponse: any[] = [];
-            for (const r of data.compositeRequest) {
-                compositeResponse.push({
-                    body: {
+                for (const r of data.compositeRequest) {
+                    const body: RecordCreateResponse = {
                         id: '001R00000033I6AIAU',
                         success: true,
                         errors: [],
-                    },
-                    httpHeaders: { Location: r.url + '/001R00000033I6AIAU' },
-                    httpStatusCode: 201,
-                    referenceId: r.referenceId,
-                });
-            }
+                    };
 
-            return {
-                data: { compositeResponse },
-                status: 201,
-                statusText: 'OK',
-                headers: {},
-                config: {},
-            };
-        });
+                    compositeResponse.push({
+                        body,
+                        referenceID: r.referenceId,
+                        httpHeaders: new Map([['Location', r.url + '/001R00000033I6AIAU']]),
+                        httpStatusCode: 201,
+                    });
+                }
 
-        const data = await c.execute('v50.0', fakeAxios);
+                return {
+                    data: { compositeResponse },
+                    status: 201,
+                    statusText: 'OK',
+                    headers: {},
+                    config: {},
+                };
+            },
+        );
+
+        const data = await c.execute(auth);
 
         expect(data.compositeResponse).toHaveLength(2);
-        expect(data.compositeResponse[0].referenceId).toBe('NewLead');
-        expect(data.compositeResponse[1].referenceId).toBe('AddTask');
+        expect(data.compositeResponse[0].referenceID).toBe('NewLead');
+        expect(data.compositeResponse[1].referenceID).toBe('AddTask');
     });
 
     it('throws on error', async() => {
-        const c: Composite = new Composite(true);
-        const testFirst: SObjects = new SObjects({
-            method: 'POST',
-            sobject: 'Lead',
-            body: { heck: 'yeah' },
-        });
-        const testNext: SObjects = new SObjects({
-            method: 'POST',
-            sobject: 'Task',
-            body: {sup: 'bruh', WhoId: '@{NewLead.id}'},
-        });
+        (axios.request as jest.Mock) = jest.fn(
+            async({ data }: AxiosRequestConfig): Promise<AxiosResponse<CompositeResponse>> => {
+                const compositeResponse: Array<CompositeSubrequestResponse> = [];
+                data.compositeRequest.forEach(() => {
+                    const body: SalesforceError = [ {
+                        'message' : 'Email: invalid email address: Not a real email address',
+                        'errorCode' : 'INVALID_EMAIL_ADDRESS',
+                        'fields' : [ 'Email' ],
+                    } ];
 
-        c
-            .add({ referenceId: "NewLead", request: testFirst })
-            .add({ referenceId: 'badTask', request: testNext });
-
-        const fakeAxios = axios.create({
-            baseURL: 'FakeBaseUrl',
-            headers: { Authorization: 'Bearer RmFrZSBzaWduYXR1cmU=' },
-        });
-
-        (fakeAxios.request as jest.Mock) = jest.fn(async({ data }) => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const compositeResponse: any[] = [];
-            data.compositeRequest.forEach(() => {
-                compositeResponse.push({
-                    "body" : [ {
-                        "message" : "Email: invalid email address: Not a real email address",
-                        "errorCode" : "INVALID_EMAIL_ADDRESS",
-                        "fields" : [ "Email" ],
-                    } ],
-                    "httpHeaders" : { },
-                    "httpStatusCode" : 400,
-                    "referenceId" : "badContact",
+                    compositeResponse.push({
+                        body,
+                        referenceID: 'badContact',
+                        httpHeaders: new Map(),
+                        httpStatusCode: 400,
+                    });
                 });
-            });
 
-            throw {
-                message: 'Request failed with status code 400',
-                isAxiosError: true,
-                response: {
-                    data: { compositeResponse },
-                    config: {},
-                    headers: {},
-                    status: 400,
-                    statusText: 'Bad Request',
-                },
-            };
-        });
+                throw {
+                    config: undefined,
+                    name: 'AxiosError',
+                    message: 'Request failed with status code 400',
+                    isAxiosError: true,
+                    toJSON: (): void => { /* NOOP */ },
+                    response: {
+                        data: {compositeResponse},
+                        config: {},
+                        headers: {},
+                        status: 400,
+                        statusText: 'Bad Request',
+                    },
+                };
+            },
+        );
 
         let error;
         try {
-            await c.execute('v50.0', fakeAxios);
+            await c.execute(auth);
         } catch (err) {
             error = err;
         }

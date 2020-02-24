@@ -1,11 +1,6 @@
-import {AxiosInstance} from "axios";
+import Auth from './Auth';
+import {SalesforceResponse} from './Responses';
 
-interface Executable {
-    buildUrl(apiVersion: string): string;
-
-    // Data from external APIs could be anything and could also change
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    execute(apiVersion: string, axios: AxiosInstance): Promise<any>;
+export default interface Executable {
+    execute(auth: Auth): Promise<SalesforceResponse>;
 }
-
-export default Executable;

@@ -1,64 +1,71 @@
-import axios from 'axios';
+import axios, {AxiosResponse} from 'axios';
 import Query from './Query';
+import Auth from './Auth';
+import {QueryResponse, SalesforceRecord} from './Responses';
+
+
+const auth: Auth = new Auth({
+    apiVersion: 'v50.5',
+    baseUrl: 'https://my.fake.tld',
+    authUrl: 'https://auth.my.fake.tld',
+    clientId: 'fakeClientId',
+    clientSecret: 'fakeClientSecret',
+    grantType: 'password',
+    password: 'fakeInvalidPassword',
+    username: 'fakeUsername',
+});
+
+(auth.getInstance as jest.Mock) = jest.fn(async() => 'https://my.fake.tld');
+(auth.getToken as jest.Mock) = jest.fn(async() => 'fakeAccessToken');
+
+interface TestRecord extends SalesforceRecord {
+    Id: string;
+}
+
 
 describe('Query.buildUrl', () => {
-    it('returns simplest url with Requests API version', () => {
-        const r: Query = new Query({
+    it('returns simplest url with Query API version', async() => {
+        const query: Query = new Query({
             query: 'select id from contact where name = \'Howard Jones\'',
             apiVersion: 'v46.0',
         });
-        const url: string = r.buildUrl('v50.5');
+        const url: string = await query.buildUrl(auth);
 
         expect(url).toEqual(
-            '/services/data/v46.0/query/?q=select+id+from+contact+where+name+=+\'Howard+Jones\'',
+            'https://my.fake.tld/services/data/v46.0/query/?q=select+id+from+contact+where+name+=+\'Howard+Jones\'',
         );
     });
 
-    it('returns simplest url with Executor API version', () => {
-        const r: Query = new Query({
+    it('returns simplest url with Auth default API version', async() => {
+        const query: Query = new Query({
             query: 'select id from contact where name = \'Howard Jones\'',
         });
-        const url: string = r.buildUrl('v50.5');
+        const url: string = await query.buildUrl(auth);
 
         expect(url).toEqual(
-            '/services/data/v50.5/query/?q=select+id+from+contact+where+name+=+\'Howard+Jones\'',
+            'https://my.fake.tld/services/data/v50.5/query/?q=select+id+from+contact+where+name+=+\'Howard+Jones\'',
         );
-    });
-});
-
-describe('Query.validate', () => {
-    it('returns true is request is valid - always', () => {
-        const r: Query = new Query({
-            query: 'select id from contact where name = \'Howard Jones\'',
-        });
-
-        expect(r.validate()).toBeTruthy();
     });
 });
 
 describe('Query.execute', () => {
     it('should return data on success', async() => {
-        const r: Query = new Query({
+        const query: Query = new Query({
             query: 'select id from contact where name = \'Howard Jones\'',
             apiVersion: 'v46.0',
         });
 
-        const fakeAxios = axios.create({
-            baseURL: 'FakeBaseUrl',
-            headers: { Authorization: 'Bearer RmFrZSBzaWduYXR1cmU=' },
-        });
-
-        (fakeAxios.request as jest.Mock) = jest.fn(async() => {
+        (axios.request as jest.Mock) = jest.fn(async(): Promise<AxiosResponse<QueryResponse<TestRecord>>> => {
             return {
                 data: {
-                    "totalSize": 1,
-                    "done": true,
-                    "records": [{
-                        "attributes": {
-                            "type": "Contact",
-                            "url": "/services/data/v46.0/sobjects/Contact/00Q1w0000029yNwEAI",
+                    'totalSize': 1,
+                    'done': true,
+                    'records': [{
+                        'attributes': {
+                            'type': 'Contact',
+                            'url': '/services/data/v46.0/sobjects/Contact/00Q1w0000029yNwEAI',
                         },
-                        "Id": "00Q1w0000029yNwEAI",
+                        'Id': '00Q1w0000029yNwEAI',
                     }],
                 },
                 status: 200,
@@ -68,7 +75,7 @@ describe('Query.execute', () => {
             };
         });
 
-        const data = await r.execute('v50.0', fakeAxios);
+        const data = await query.execute<TestRecord>(auth);
 
         expect(data.records[0].Id).toHaveLength(18);
     });
@@ -79,19 +86,14 @@ describe('Query.execute', () => {
             apiVersion: 'v46.0',
         });
 
-        const fakeAxios = axios.create({
-            baseURL: 'FakeBaseUrl',
-            headers: { Authorization: 'Bearer RmFrZSBzaWduYXR1cmU=' },
-        });
-
-        (fakeAxios.request as jest.Mock) = jest.fn(async() => {
+        (axios.request as jest.Mock) = jest.fn(async() => {
             throw {
                 message: 'Request failed with status code 400',
                 isAxiosError: true,
                 response: {
                     data: [{
-                        "message": "The error message here",
-                        "errorCode": "INVALID_TYPE",
+                        'message': 'The error message here',
+                        'errorCode': 'INVALID_TYPE',
                     }],
                     config: {},
                     headers: {},
@@ -103,7 +105,7 @@ describe('Query.execute', () => {
 
         let error;
         try {
-            await r.execute('v50.0', fakeAxios);
+            await r.execute(auth);
         } catch (err) {
             error = err;
         }
@@ -117,23 +119,23 @@ describe('Query.execute', () => {
     });
 });
 
+describe('Query.validate', () => {
+    it('returns true is request is valid - always', () => {
+        const r: Query = new Query({ query: 'select id from contact where name = \'Howard Jones\'' });
+        expect(r.validate()).toBeTruthy();
+    });
+});
 
 describe('Query.getBody', () => {
     it('should return nothing', () => {
-        const r: Query = new Query({
-            query: 'select id from contact where name = \'Howard Jones\'',
-        });
-
+        const r: Query = new Query({ query: 'select id from contact where name = \'Howard Jones\'' });
         expect(r.getBody()).toBeUndefined();
     });
 });
 
 describe('Query.getMethod', () => {
     it('should return GET', () => {
-        const r: Query = new Query({
-            query: 'select id from contact where name = \'Howard Jones\'',
-        });
-
+        const r: Query = new Query({ query: 'select id from contact where name = \'Howard Jones\'' });
         expect(r.getMethod()).toBe('GET');
     });
 });
