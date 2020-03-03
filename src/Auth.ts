@@ -2,7 +2,6 @@ import axios, {AxiosResponse} from 'axios';
 
 export interface AuthConfig {
     baseUrl: string;
-    grantType: string;
     clientId: string;
     clientSecret: string;
     username: string;
@@ -21,9 +20,9 @@ export interface SalesforceAuthResponse {
 
 export default class Auth {
     static readonly path: string = '/services/oauth2/token';
+    static readonly grantType: string = 'password';
 
     private readonly baseUrl: string;
-    private readonly grantType: string;
     private readonly clientId: string;
     private readonly clientSecret: string;
     private readonly username: string;
@@ -33,7 +32,6 @@ export default class Auth {
     private authPayload?: SalesforceAuthResponse;
 
     public constructor({
-        grantType,
         clientId,
         clientSecret,
         username,
@@ -42,7 +40,6 @@ export default class Auth {
         apiVersion,
     }: AuthConfig) {
         this.baseUrl = baseUrl;
-        this.grantType = grantType;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.username = username;
@@ -81,11 +78,11 @@ export default class Auth {
                 null,
                 {
                     params: {
-                        'grant_type': this.grantType,
+                        'grant_type': Auth.grantType,
                         'client_id': this.clientId,
                         'client_secret': this.clientSecret,
-                        username: this.username,
-                        password: this.password,
+                        'username': this.username,
+                        'password': this.password,
                     },
                 },
             );

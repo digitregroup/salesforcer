@@ -10,7 +10,6 @@ describe('Auth.getToken', () => {
             baseUrl: 'https://my.fake.tld',
             clientId: 'fakeClientId',
             clientSecret: 'fakeClientSecret',
-            grantType: 'password',
             password: 'fakeValidPassword',
             username: 'fakeUsername',
         });
@@ -45,7 +44,6 @@ describe('Auth.getToken', () => {
             baseUrl: 'https://my.fake.tld',
             clientId: 'fakeClientId',
             clientSecret: 'fakeClientSecret',
-            grantType: 'password',
             password: 'fakeValidPassword',
             username: 'fakeUsername',
         });
@@ -85,7 +83,6 @@ describe('Auth.getToken', () => {
             baseUrl: 'https://my.fake.tld',
             clientId: 'fakeClientId',
             clientSecret: 'fakeClientSecret',
-            grantType: 'password',
             password: 'fakeInvalidPassword',
             username: 'fakeUsername',
         });

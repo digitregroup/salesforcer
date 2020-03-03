@@ -36,6 +36,7 @@ Table of contents:
 
 Auth is the only class holding the mean to connect with Salesforce.  
 It is required to execute any instance of classes implementing [Executable].
+*Only `grant_type=password` is supported.*
 ```js
 const { Auth } = require('@digitregroup/salesforcer');
 
@@ -44,7 +45,6 @@ const auth = new Auth({
     baseUrl: 'https://my.fake.tld',
     clientId: 'fakeClientId',
     clientSecret: 'fakeClientSecret',
-    grantType: 'password',
     password: 'fakeValidPassword',
     username: 'fakeUsername',
 });
@@ -53,7 +53,6 @@ const auth = new Auth({
 #### constructor(authConfig)
 - `authConfig` <[Object]>
   - `baseUrl` <[string]> The base url of the Salesforce instance to be queried.
-  - `grantType` <[string]> The grant type to authenticate with Salesforce. 
   - `clientId` <[string]> The client id used to authenticate with Salesforce.
   - `clientSecret` <[string]> The client secret used to authenticate with Salesforce.
   - `username` <[string]> The username used to authenticate with Salesforce.
