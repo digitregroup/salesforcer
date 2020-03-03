@@ -27,7 +27,7 @@ export default class Query implements Executable, Composable {
 
     public async buildUrl(auth: Auth): Promise<string> {
         return [
-            await auth.getInstance(),
+            await auth.getInstanceUrl(),
             Query.pathPrefix,
             this.apiVersion || auth.getApiVersion(),
             Query.pathSuffix,

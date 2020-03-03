@@ -7,7 +7,6 @@ import {QueryResponse, SalesforceRecord} from './Responses';
 const auth: Auth = new Auth({
     apiVersion: 'v50.5',
     baseUrl: 'https://my.fake.tld',
-    authUrl: 'https://auth.my.fake.tld',
     clientId: 'fakeClientId',
     clientSecret: 'fakeClientSecret',
     grantType: 'password',
@@ -15,7 +14,7 @@ const auth: Auth = new Auth({
     username: 'fakeUsername',
 });
 
-(auth.getInstance as jest.Mock) = jest.fn(async() => 'https://my.fake.tld');
+(auth.getInstanceUrl as jest.Mock) = jest.fn(async() => 'https://my.fake.tld');
 (auth.getToken as jest.Mock) = jest.fn(async() => 'fakeAccessToken');
 
 interface TestRecord extends SalesforceRecord {

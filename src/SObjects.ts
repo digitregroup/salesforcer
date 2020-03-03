@@ -45,7 +45,7 @@ export default class SObjects implements Executable, Composable {
 
     public async buildUrl(auth: Auth): Promise<string> {
         let url: string = [
-            await auth.getInstance(),
+            await auth.getInstanceUrl(),
             SObjects.pathPrefix,
             this.apiVersion || auth.getApiVersion(),
             SObjects.pathSuffix,

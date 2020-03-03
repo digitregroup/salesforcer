@@ -8,7 +8,6 @@ describe('Auth.getToken', () => {
         const auth: Auth = new Auth({
             apiVersion: 'v0.0',
             baseUrl: 'https://my.fake.tld',
-            authUrl: 'https://auth.my.fake.tld',
             clientId: 'fakeClientId',
             clientSecret: 'fakeClientSecret',
             grantType: 'password',
@@ -44,7 +43,6 @@ describe('Auth.getToken', () => {
         const auth: Auth = new Auth({
             apiVersion: 'v0.0',
             baseUrl: 'https://my.fake.tld',
-            authUrl: 'https://auth.my.fake.tld',
             clientId: 'fakeClientId',
             clientSecret: 'fakeClientSecret',
             grantType: 'password',
@@ -85,7 +83,6 @@ describe('Auth.getToken', () => {
         const auth: Auth = new Auth({
             apiVersion: 'v0.0',
             baseUrl: 'https://my.fake.tld',
-            authUrl: 'https://auth.my.fake.tld',
             clientId: 'fakeClientId',
             clientSecret: 'fakeClientSecret',
             grantType: 'password',
