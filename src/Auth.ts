@@ -1,13 +1,12 @@
 import axios, {AxiosResponse} from 'axios';
 
 export interface AuthConfig {
-    authUrl: string;
+    baseUrl: string;
     grantType: string;
     clientId: string;
     clientSecret: string;
     username: string;
     password: string;
-    baseUrl: string;
     apiVersion: string;
 }
 
@@ -21,19 +20,19 @@ export interface SalesforceAuthResponse {
 }
 
 export default class Auth {
-    private readonly authUrl: string;
+    static readonly path: string = '/services/oauth2/token';
+
+    private readonly baseUrl: string;
     private readonly grantType: string;
     private readonly clientId: string;
     private readonly clientSecret: string;
     private readonly username: string;
     private readonly password: string;
-    private readonly baseUrl: string;
     private readonly apiVersion: string;
 
     private authPayload?: SalesforceAuthResponse;
 
     public constructor({
-        authUrl,
         grantType,
         clientId,
         clientSecret,
@@ -42,14 +41,12 @@ export default class Auth {
         baseUrl,
         apiVersion,
     }: AuthConfig) {
-        this.authUrl = authUrl;
+        this.baseUrl = baseUrl;
         this.grantType = grantType;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.username = username;
         this.password = password;
-
-        this.baseUrl = baseUrl;
         this.apiVersion = apiVersion;
     }
 
@@ -57,7 +54,7 @@ export default class Auth {
         return this.apiVersion;
     }
 
-    public async getInstance(): Promise<string> {
+    public async getInstanceUrl(): Promise<string> {
         if (!this.authPayload) {
             this.authPayload = await this.authenticate();
         }
@@ -80,7 +77,7 @@ export default class Auth {
     private async authenticate(): Promise<SalesforceAuthResponse> {
         try {
             const response: AxiosResponse<SalesforceAuthResponse> = await axios.post(
-                this.authUrl,
+                this.baseUrl + Auth.path,
                 null,
                 {
                     params: {

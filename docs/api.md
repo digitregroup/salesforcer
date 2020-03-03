@@ -12,7 +12,7 @@ Table of contents:
 - [class: Auth](#class-auth)
     * [auth.constructor(authConfig)](#constructorauthconfig)
     * [auth.getApiVersion()](#authgetapiversion)
-    * [auth.getInstance()](#authgetinstance)
+    * [auth.getInstanceUrl()](#authgetinstance)
     * [auth.getToken()](#authgettoken)
     * [auth.revoke()](#authrevoke)
 - [class: Query](#class-query)
@@ -42,7 +42,6 @@ const { Auth } = require('@digitregroup/salesforcer');
 const auth = new Auth({
     apiVersion: 'v0.0',
     baseUrl: 'https://my.fake.tld',
-    authUrl: 'https://auth.my.fake.tld',
     clientId: 'fakeClientId',
     clientSecret: 'fakeClientSecret',
     grantType: 'password',
@@ -53,13 +52,12 @@ const auth = new Auth({
 
 #### constructor(authConfig)
 - `authConfig` <[Object]>
-  - `authUrl` <[string]> The Salesforce url to authentify againts.
+  - `baseUrl` <[string]> The base url of the Salesforce instance to be queried.
   - `grantType` <[string]> The grant type to authenticate with Salesforce. 
   - `clientId` <[string]> The client id used to authenticate with Salesforce.
   - `clientSecret` <[string]> The client secret used to authenticate with Salesforce.
   - `username` <[string]> The username used to authenticate with Salesforce.
   - `password` <[string]> The password used to authenticate with Salesforce.
-  - `baseUrl` <[string]> The base url of the Salesforce instance to be queried.
   - `apiVersion` <[string]> The default api version to be used with this connection.
 
 #### auth.getApiVersion()
@@ -67,7 +65,7 @@ const auth = new Auth({
 
 Returns the api version defined in Auth.
 
-#### auth.getInstance()
+#### auth.getInstanceUrl()
 - returns: <[Promise]<[string]>>
 
 Returns the instance url returned by Salesforce when authenticating.  

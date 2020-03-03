@@ -65,7 +65,7 @@ export default class Composite implements Executable {
 
     private async buildUrl(auth: Auth): Promise<string> {
         return [
-            await auth.getInstance(),
+            await auth.getInstanceUrl(),
             Composite.pathPrefix,
             this.apiVersion || auth.getApiVersion(),
             Composite.pathSuffix,
