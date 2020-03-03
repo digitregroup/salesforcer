@@ -15,7 +15,6 @@ const auth: Auth = new Auth({
     baseUrl: 'https://my.fake.tld',
     clientId: 'fakeClientId',
     clientSecret: 'fakeClientSecret',
-    grantType: 'password',
     password: 'fakeInvalidPassword',
     username: 'fakeUsername',
 });

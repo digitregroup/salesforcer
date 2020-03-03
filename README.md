@@ -15,7 +15,8 @@ It uses [axios](https://github.com/axios/axios) to make HTTP requests.
 
 **LIMITATIONS AND DISCLAIMER**  
 This library is in [pre 1.0.0 state](https://semver.org/#spec-item-4). Api and structure can change and break frequently.  
-Currently only `sobjects`, `query` and `composite` requests are supported.
+Currently only `sobjects`, `query` and `composite` requests are supported.  
+Authentification only supports `grant_type=password`.
 
 
 ## Documentation
