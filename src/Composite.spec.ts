@@ -112,6 +112,12 @@ describe('Composite.execute', () => {
         );
 
         const data = await c.execute(auth);
+        const requestParam: AxiosRequestConfig = (axios.request as jest.Mock).mock.calls[0][0];
+
+        expect(requestParam).toHaveProperty('url');
+        expect(requestParam).toHaveProperty('method');
+        expect(requestParam).toHaveProperty('data');
+        expect(requestParam).toHaveProperty('headers.Authorization');
 
         expect(data.compositeResponse).toHaveLength(2);
         expect(data.compositeResponse[0].referenceID).toBe('NewLead');
