@@ -1,4 +1,4 @@
-import axios, {AxiosResponse} from 'axios';
+import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import Query from './Query';
 import Auth from './Auth';
 import {QueryResponse, SalesforceRecord} from './Responses';
@@ -74,6 +74,11 @@ describe('Query.execute', () => {
         });
 
         const data = await query.execute<TestRecord>(auth);
+        const requestParam: AxiosRequestConfig = (axios.request as jest.Mock).mock.calls[0][0];
+
+        expect(requestParam).toHaveProperty('url');
+        expect(requestParam).toHaveProperty('method');
+        expect(requestParam).toHaveProperty('headers.Authorization');
 
         expect(data.records[0].Id).toHaveLength(18);
     });

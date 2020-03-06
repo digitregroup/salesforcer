@@ -1,4 +1,4 @@
-import axios, {AxiosResponse} from 'axios';
+import axios, {AxiosRequestConfig, AxiosResponse} from 'axios';
 import SObjects from './SObjects';
 import Auth from './Auth';
 import {RecordCreateResponse} from './Responses';
@@ -79,6 +79,12 @@ describe('SObjects.execute', () => {
         });
 
         const data: RecordCreateResponse = await sobject.execute(auth);
+        const requestParam: AxiosRequestConfig = (axios.request as jest.Mock).mock.calls[0][0];
+
+        expect(requestParam).toHaveProperty('url');
+        expect(requestParam).toHaveProperty('method');
+        expect(requestParam).toHaveProperty('data');
+        expect(requestParam).toHaveProperty('headers.Authorization');
 
         expect(data.id).toHaveLength(18);
         expect(data.success).toBeTruthy();
