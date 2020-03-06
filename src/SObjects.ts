@@ -70,6 +70,9 @@ export default class SObjects implements Executable, Composable {
             url: await this.buildUrl(auth),
             method: this.method,
             data: this.body,
+            headers: {
+                'Authorization': 'Bearer ' + await auth.getToken(),
+            },
         });
 
         return res.data;

@@ -41,6 +41,9 @@ export default class Query implements Executable, Composable {
         const res: AxiosResponse<QueryResponse<T>> = await axios.request({
             url: await this.buildUrl(auth),
             method: Query.method,
+            headers: {
+                'Authorization': 'Bearer ' + await auth.getToken(),
+            },
         });
 
         return res.data;
