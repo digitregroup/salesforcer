@@ -77,6 +77,9 @@ export default class Composite implements Executable {
             url: await this.buildUrl(auth),
             method: Composite.method,
             data: await this.buildPayload(auth),
+            headers: {
+                'Authorization': 'Bearer ' + await auth.getToken(),
+            },
         });
 
         return res.data;
