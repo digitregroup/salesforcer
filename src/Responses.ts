@@ -17,10 +17,10 @@ export interface CompositeResponse extends SalesforceResponse {
 }
 
 export interface CompositeSubrequestResponse {
-    body: SalesforceResponse | SalesforceError;
+    body: SalesforceResponse | SalesforceError | null;
     httpHeaders: Map<string, string>;
     httpStatusCode: number;
-    referenceID: string;
+    referenceId: string;
 }
 
 /** A marker interface for easyier use in SObjects */

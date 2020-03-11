@@ -95,7 +95,7 @@ describe('Composite.execute', () => {
 
                     compositeResponse.push({
                         body,
-                        referenceID: r.referenceId,
+                        referenceId: r.referenceId,
                         httpHeaders: new Map([['Location', r.url + '/001R00000033I6AIAU']]),
                         httpStatusCode: 201,
                     });
@@ -120,8 +120,8 @@ describe('Composite.execute', () => {
         expect(requestParam).toHaveProperty('headers.Authorization');
 
         expect(data.compositeResponse).toHaveLength(2);
-        expect(data.compositeResponse[0].referenceID).toBe('NewLead');
-        expect(data.compositeResponse[1].referenceID).toBe('AddTask');
+        expect(data.compositeResponse[0].referenceId).toBe('NewLead');
+        expect(data.compositeResponse[1].referenceId).toBe('AddTask');
     });
 
     it('throws on error', async() => {
@@ -137,7 +137,7 @@ describe('Composite.execute', () => {
 
                     compositeResponse.push({
                         body,
-                        referenceID: 'badContact',
+                        referenceId: 'badContact',
                         httpHeaders: new Map(),
                         httpStatusCode: 400,
                     });
