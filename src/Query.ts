@@ -25,9 +25,8 @@ export default class Query implements Executable, Composable {
         this.apiVersion = apiVersion;
     }
 
-    public async buildUrl(auth: Auth): Promise<string> {
+    public buildUrl(auth: Auth): string {
         return [
-            await auth.getInstanceUrl(),
             Query.pathPrefix,
             this.apiVersion || auth.getApiVersion(),
             Query.pathSuffix,
@@ -39,7 +38,7 @@ export default class Query implements Executable, Composable {
         this.validate();
 
         const res: AxiosResponse<QueryResponse<T>> = await axios.request({
-            url: await this.buildUrl(auth),
+            url: await auth.getInstanceUrl() + this.buildUrl(auth),
             method: Query.method,
             headers: {
                 'Authorization': 'Bearer ' + await auth.getToken(),

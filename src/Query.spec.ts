@@ -30,7 +30,7 @@ describe('Query.buildUrl', () => {
         const url: string = await query.buildUrl(auth);
 
         expect(url).toEqual(
-            'https://my.fake.tld/services/data/v46.0/query/?q=select+id+from+contact+where+name+=+\'Howard+Jones\'',
+            '/services/data/v46.0/query/?q=select+id+from+contact+where+name+=+\'Howard+Jones\'',
         );
     });
 
@@ -41,7 +41,7 @@ describe('Query.buildUrl', () => {
         const url: string = await query.buildUrl(auth);
 
         expect(url).toEqual(
-            'https://my.fake.tld/services/data/v50.5/query/?q=select+id+from+contact+where+name+=+\'Howard+Jones\'',
+            '/services/data/v50.5/query/?q=select+id+from+contact+where+name+=+\'Howard+Jones\'',
         );
     });
 });
@@ -77,6 +77,9 @@ describe('Query.execute', () => {
         const requestParam: AxiosRequestConfig = (axios.request as jest.Mock).mock.calls[0][0];
 
         expect(requestParam).toHaveProperty('url');
+        expect(requestParam.url).toBe(
+            'https://my.fake.tld/services/data/v46.0/query/?q=select+id+from+contact+where+name+=+\'Howard+Jones\'',
+        );
         expect(requestParam).toHaveProperty('method');
         expect(requestParam).toHaveProperty('headers.Authorization');
 

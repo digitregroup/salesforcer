@@ -43,9 +43,8 @@ export default class SObjects implements Executable, Composable {
         this.apiVersion = apiVersion;
     }
 
-    public async buildUrl(auth: Auth): Promise<string> {
+    public buildUrl(auth: Auth): string {
         let url: string = [
-            await auth.getInstanceUrl(),
             SObjects.pathPrefix,
             this.apiVersion || auth.getApiVersion(),
             SObjects.pathSuffix,
@@ -67,7 +66,7 @@ export default class SObjects implements Executable, Composable {
         this.validate();
 
         const res: AxiosResponse<T> = await axios.request({
-            url: await this.buildUrl(auth),
+            url: await auth.getInstanceUrl() + this.buildUrl(auth),
             method: this.method,
             data: this.body,
             headers: {
