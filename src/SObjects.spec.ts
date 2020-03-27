@@ -22,21 +22,21 @@ describe('SObjects.buildUrl', () => {
         const sobject: SObjects = new SObjects({ method: 'POST', sobject: 'Task', body: {}, apiVersion: 'v46.0' });
         const url: string = await sobject.buildUrl(auth);
 
-        expect(url).toEqual('https://my.fake.tld/services/data/v46.0/sobjects/Task');
+        expect(url).toEqual('/services/data/v46.0/sobjects/Task');
     });
 
     it('returns simplest url with Executor API version', async() => {
         const sobject: SObjects = new SObjects({ method: 'POST', sobject: 'Task', body: {} });
         const url: string = await sobject.buildUrl(auth);
 
-        expect(url).toEqual('https://my.fake.tld/services/data/v50.5/sobjects/Task');
+        expect(url).toEqual('/services/data/v50.5/sobjects/Task');
     });
 
     it('returns url with params', async() => {
         const sobject: SObjects = new SObjects({ method: 'POST', sobject: 'Task', params: ['@{NewAccount.id}']});
         const url: string = await sobject.buildUrl(auth);
 
-        expect(url).toEqual('https://my.fake.tld/services/data/v50.5/sobjects/Task/@{NewAccount.id}');
+        expect(url).toEqual('/services/data/v50.5/sobjects/Task/@{NewAccount.id}');
     });
 
     it('returns url with params and query string', async() => {
@@ -49,7 +49,7 @@ describe('SObjects.buildUrl', () => {
         const url: string = await sobject.buildUrl(auth);
 
         expect(url).toEqual(
-            'https://my.fake.tld/services/data/v50.5/sobjects/Task/@{NewAccount.id}?fields=companyName',
+            '/services/data/v50.5/sobjects/Task/@{NewAccount.id}?fields=companyName',
         );
     });
 });
@@ -82,6 +82,7 @@ describe('SObjects.execute', () => {
         const requestParam: AxiosRequestConfig = (axios.request as jest.Mock).mock.calls[0][0];
 
         expect(requestParam).toHaveProperty('url');
+        expect(requestParam.url).toBe('https://my.fake.tld/services/data/v46.0/sobjects/Task');
         expect(requestParam).toHaveProperty('method');
         expect(requestParam).toHaveProperty('data');
         expect(requestParam).toHaveProperty('headers.Authorization');
