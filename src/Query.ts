@@ -26,12 +26,14 @@ export default class Query implements Executable, Composable {
     }
 
     public buildUrl(auth: Auth): string {
-        return [
-            Query.pathPrefix,
-            this.apiVersion || auth.getApiVersion(),
-            Query.pathSuffix,
-            '?q=' + this.query.replace(/\s/g, '+'),
-        ].join('');
+        return encodeURI(
+            [
+                Query.pathPrefix,
+                this.apiVersion || auth.getApiVersion(),
+                Query.pathSuffix,
+                '?q=' + this.query,
+            ].join(''),
+        ).replace(/%20/g, '+');
     }
 
     public async execute<T extends SalesforceRecord>(auth: Auth): Promise<QueryResponse<T>> {

@@ -44,6 +44,17 @@ describe('Query.buildUrl', () => {
             '/services/data/v50.5/query/?q=select+id+from+contact+where+name+=+\'Howard+Jones\'',
         );
     });
+
+    it('returns url with special characters encoded', async() => {
+        const query: Query = new Query({
+            query: 'select id from contact where name LIKE \'%Howard Jones\'',
+        });
+        const url: string = await query.buildUrl(auth);
+
+        expect(url).toEqual(
+            '/services/data/v50.5/query/?q=select+id+from+contact+where+name+LIKE+\'%25Howard+Jones\'',
+        );
+    });
 });
 
 describe('Query.execute', () => {
