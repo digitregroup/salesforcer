@@ -45,14 +45,18 @@ describe('Query.buildUrl', () => {
         );
     });
 
-    it('returns url with special characters encoded', async() => {
+    it('handles multiline and escaped string', async() => {
         const query: Query = new Query({
-            query: 'select id from contact where name LIKE \'%Howard Jones\'',
+            query: `
+SELECT Id
+FROM Contact
+WHERE Email LIKE '${encodeURIComponent('test+woot@domain.%')}'
+            `,
         });
         const url: string = await query.buildUrl(auth);
 
         expect(url).toEqual(
-            '/services/data/v50.5/query/?q=select+id+from+contact+where+name+LIKE+\'%25Howard+Jones\'',
+            '/services/data/v50.5/query/?q=SELECT+Id+FROM+Contact+WHERE+Email+LIKE+\'test%2Bwoot%40domain.%25\'',
         );
     });
 });
