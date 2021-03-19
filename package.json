@@ -10,7 +10,8 @@
   "scripts": {
     "lint": "eslint src/*.ts",
     "test": "jest",
-    "build": "tsc"
+    "build": "tsc",
+    "tscheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@types/jest": "^26.0.20",
